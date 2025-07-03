@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pac-Man Login Integrated Game</title>
-  <meta name="viewport" content="width=520, initial-scale=1">
+  <title>Pac-Man 2P Login Integrated Game</title>
+  <meta name="viewport" content="width=728, initial-scale=1">
   <style>
     html,body { margin:0;padding:0;background:#232348;}
     body { font-family: 'Segoe UI', Arial, sans-serif; }
@@ -18,6 +18,10 @@
     #gameCanvas {
       display:block;margin:60px auto 0 auto;background:#000;box-shadow:0 5px 36px #0007;border-radius:12px;
     }
+    #pm-statusbar {
+      display:block; margin: 10px auto 0 auto; width:728px; color:#fff;font-size:1.1em;text-align:center;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -25,13 +29,13 @@
 <div id="pm-homepage" style="display:flex;position:fixed;z-index:11;left:0;top:0;width:100vw;height:100vh;align-items:center;justify-content:center;background:#16162b;">
   <div style="background:rgba(10,10,40,0.95);border-radius:22px;padding:38px 36px;min-width:320px;max-width:420px;text-align:center;box-shadow:0 5px 40px #0cf5;">
     <canvas id="pm-home-anim" width="320" height="120" style="display:block;margin:auto;margin-bottom:12px;"></canvas>
-    <h1 style="color:#ffe900;font-family:Arial Black,Arial,sans-serif;font-size:2.1em;letter-spacing:2px;margin:0 0 14px 0;text-shadow:0 3px 12px #ffd700,0 1px 0 #000;">PAC-MAN</h1>
+    <h1 style="color:#ffe900;font-family:Arial Black,Arial,sans-serif;font-size:2.1em;letter-spacing:2px;margin:0 0 14px 0;text-shadow:0 3px 12px #ffd700,0 1px 0 #000;">PAC-MAN 2P</h1>
     <div style="color:#fff6;font-size:1.13em;margin-bottom:18px;">
-      <p>The classic arcade game—now with accounts!</p>
+      <p>The classic arcade game—now with accounts and 2 players!</p>
       <ul style="text-align:left;color:#fff8">
-        <li>Sign in, save your scores</li>
-        <li>Animated homepage & modern UI</li>
-        <li>Logout & quick user switching</li>
+        <li>Player 1: Pac-Man (WASD)</li>
+        <li>Player 2: Chaser/Ghost (Arrow keys)</li>
+        <li>Bigger maze and more dots</li>
       </ul>
     </div>
     <button onclick="pmGoToLogin()" style="background:#ffe900;color:#16162b;font-weight:bold;font-size:1.1em;border:none;border-radius:10px;padding:12px 36px;box-shadow:0 2px 16px #ffd700aa;cursor:pointer;transition:background .2s;">Sign In / Register</button>
@@ -66,9 +70,8 @@
   <span id="pm-userbar-welcome"></span>
   <button onclick="pmLogout()">Logout</button>
 </div>
-
-<!-- Your Pac-Man game canvas here! -->
-<canvas id="gameCanvas" width="448" height="576"></canvas>
+<div id="pm-statusbar"></div>
+<canvas id="gameCanvas" width="704" height="704"></canvas>
 
 <script>
 // --- HOMEPAGE ANIMATION ---
@@ -79,7 +82,6 @@ function pmAnimHomepage() {
   let t = 0;
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    // Dots
     for(let x=32;x<=288;x+=32) {
       ctx.beginPath();
       ctx.arc(x,60,5,0,2*Math.PI);
@@ -88,7 +90,6 @@ function pmAnimHomepage() {
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    // Pac-Man
     let px = 32 + ((t*2)%256);
     let mouth = Math.abs(Math.sin(t/7))*Math.PI/4+0.15;
     ctx.save();
@@ -101,17 +102,14 @@ function pmAnimHomepage() {
     ctx.shadowColor="#ffe900"; ctx.shadowBlur=8;
     ctx.fill(); ctx.shadowBlur=0;
     ctx.stroke();
-    // Eye
     ctx.beginPath();
     ctx.arc(7,-8,3,0,2*Math.PI); ctx.fillStyle="#191970"; ctx.fill();
     ctx.restore();
-    // Ghosts (Blinky, Pinky, Inky, Clyde)
     const ghostColors = ["#ff4444","#ffb8ff","#00eaff","#ffb847"];
     for(let i=0;i<4;++i) {
       let gx = 170+48*i - ((t*2)%256);
       ctx.save();
       ctx.translate(gx,60);
-      // Body
       ctx.beginPath();
       ctx.arc(0,0,18,Math.PI,0);
       ctx.lineTo(18,20);
@@ -120,7 +118,6 @@ function pmAnimHomepage() {
       ctx.lineTo(-18,20);
       ctx.closePath();
       ctx.fillStyle=ghostColors[i]; ctx.fill();
-      // Eyes
       ctx.beginPath();
       ctx.arc(-7,-3,4,0,2*Math.PI);
       ctx.arc(7,-3,4,0,2*Math.PI);
@@ -136,7 +133,6 @@ function pmAnimHomepage() {
   }
   draw();
 }
-
 // --- LOGIN/REGISTER LOGIC ---
 let pmCurrentUser = "";
 function pmSaveUser(u, p) {
@@ -199,7 +195,6 @@ function pmGoToLogin() {
   document.getElementById('pm-auth-overlay').style.display = "flex";
   pmShowLogin();
 }
-
 window.pmLogin = pmLogin;
 window.pmRegister = pmRegister;
 window.pmShowLogin = pmShowLogin;
@@ -207,87 +202,178 @@ window.pmShowRegister = pmShowRegister;
 window.pmLogout = pmLogout;
 window.pmGoHome = pmGoHome;
 window.pmGoToLogin = pmGoToLogin;
-
-// --- INIT HOMEPAGE ---
 window.addEventListener('DOMContentLoaded',function(){
   pmAnimHomepage();
   pmGoHome();
 });
-
-// --- INTEGRATION HOOKS ---
-// Call this in your Pac-Man game to start on login:
 window.pmOnLogin = function() {
-  // Call your Pac-Man game start logic here!
   if (typeof startGame === "function") startGame();
 };
-// Call this to pause/stop game on logout/home:
 window.pmOnLogout = function() {
-  // Optionally pause/stop your Pac-Man game here
   if (typeof stopGame === "function") stopGame();
 };
 
-/* 
--------------------------------------------
-SIMPLE DEMO PAC-MAN GAME LOOP BELOW
-Replace with your actual game logic!
--------------------------------------------
-*/
-let animId, dots = [];
-function startGame() {
-  let ctx = document.getElementById('gameCanvas').getContext('2d');
-  // Simple animated Pac-Man demo (replace with real game!)
-  let t = 0, pacX = 48, pacDir = 1;
+// ========== 2P PAC-MAN GAME LOGIC ==========
+
+const TILE = 32, MAZE_W = 22, MAZE_H = 22;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let animId, maze = [], dots = [], gameRunning = false;
+let p1 = {x:1,y:1,dx:0,dy:0,nx:1,ny:1,dir:1,score:0,alive:true};
+let p2 = {x:MAZE_W-2,y:MAZE_H-2,dx:0,dy:0,nx:MAZE_W-2,ny:MAZE_H-2,dir:3,score:0,alive:true};
+let winner = "";
+
+function buildMaze() {
+  // 0 = empty, 1 = wall, 2 = dot
+  maze = [];
+  for(let y=0;y<MAZE_H;y++) {
+    let row=[];
+    for(let x=0;x<MAZE_W;x++) {
+      if (x==0||y==0||x==MAZE_W-1||y==MAZE_H-1 || (x%2==0 && y%2==0)) row.push(1);
+      else if ((x==MAZE_W/2||x==MAZE_W/2-1) && (y>2 && y<MAZE_H-3)) row.push(1);
+      else row.push(2);
+    }
+    maze.push(row);
+  }
+  // Openings for players
+  maze[1][1]=0; maze[MAZE_H-2][MAZE_W-2]=0;
+}
+function resetGame() {
+  buildMaze();
   dots = [];
-  for(let i=0;i<28;i++) dots.push({x:16+i*16,y:288,eaten:false});
-  function loop(){
-    ctx.clearRect(0,0,448,576);
-    // Dots
-    for(let d of dots) {
-      if (!d.eaten) {
-        ctx.beginPath();
-        ctx.arc(d.x,d.y,4,0,2*Math.PI);
-        ctx.fillStyle="#fff";
-        ctx.fill();
+  for(let y=0;y<MAZE_H;y++)
+    for(let x=0;x<MAZE_W;x++)
+      if (maze[y][x]==2) dots.push({x:x,y:y,eaten:false});
+  p1.x=1;p1.y=1;p1.dx=0;p1.dy=0;p1.nx=1;p1.ny=1;p1.dir=1;p1.score=0;p1.alive=true;
+  p2.x=MAZE_W-2;p2.y=MAZE_H-2;p2.dx=0;p2.dy=0;p2.nx=MAZE_W-2;p2.ny=MAZE_H-2;p2.dir=3;p2.score=0;p2.alive=true;
+  winner = "";
+  gameRunning = true;
+}
+function movePlayer(p, keys, isP1) {
+  // Try to turn if pressed
+  let dir = p.dir, input = null;
+  if (isP1) {
+    if (keys['w']) input=0;
+    else if (keys['d']) input=1;
+    else if (keys['s']) input=2;
+    else if (keys['a']) input=3;
+  } else {
+    if (keys['ArrowUp']) input=0;
+    else if (keys['ArrowRight']) input=1;
+    else if (keys['ArrowDown']) input=2;
+    else if (keys['ArrowLeft']) input=3;
+  }
+  let dirs = [[0,-1],[1,0],[0,1],[-1,0]];
+  if (input!==null) {
+    let tx = p.x+dirs[input][0], ty=p.y+dirs[input][1];
+    if (maze[ty] && maze[ty][tx]!==1) { p.dir = input; }
+  }
+  // Move forward if possible
+  let dx = dirs[p.dir][0], dy = dirs[p.dir][1];
+  let nx = p.x+dx, ny=p.y+dy;
+  if (maze[ny] && maze[ny][nx]!==1) {
+    p.nx = nx; p.ny = ny;
+    p.x = nx; p.y = ny;
+  }
+}
+function drawMaze() {
+  for(let y=0;y<MAZE_H;y++)
+    for(let x=0;x<MAZE_W;x++) {
+      if (maze[y][x]==1) {
+        ctx.fillStyle="#234be7";
+        ctx.fillRect(x*TILE,y*TILE,TILE,TILE);
       }
     }
-    // Animate Pac-Man
-    let mouth = Math.abs(Math.sin(t/5))*Math.PI/4+0.18;
-    ctx.save();
-    ctx.translate(pacX,288);
+}
+function drawDots() {
+  for(let d of dots) {
+    if (!d.eaten) {
+      ctx.beginPath();
+      ctx.arc(d.x*TILE+TILE/2,d.y*TILE+TILE/2,6,0,2*Math.PI);
+      ctx.fillStyle="#ffe900";
+      ctx.fill();
+    }
+  }
+}
+function drawPlayer(p, color, isPac) {
+  ctx.save();
+  ctx.translate(p.x*TILE+TILE/2,p.y*TILE+TILE/2);
+  if (isPac) {
+    let mouth = Math.abs(Math.sin(Date.now()/100))*Math.PI/6+0.18;
     ctx.beginPath();
-    ctx.arc(0,0,17,mouth,2*Math.PI-mouth,false);
+    ctx.arc(0,0,14,mouth,2*Math.PI-mouth,false);
     ctx.lineTo(0,0);
     ctx.closePath();
-    ctx.fillStyle="#ffe900"; ctx.strokeStyle="#d8c800"; ctx.lineWidth=2;
-    ctx.shadowColor="#ffe900"; ctx.shadowBlur=8;
-    ctx.fill(); ctx.shadowBlur=0; ctx.stroke();
+    ctx.fillStyle=color;
+    ctx.shadowColor=color; ctx.shadowBlur=8;
+    ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle="#d8c800"; ctx.lineWidth=2; ctx.stroke();
     ctx.beginPath(); ctx.arc(7,-7,3,0,2*Math.PI); ctx.fillStyle="#191970"; ctx.fill();
-    ctx.restore();
-    // "Eat" dots
-    for(let d of dots) {
-      if (!d.eaten && Math.abs(d.x-pacX)<13) d.eaten=true;
-    }
-    // Score
-    ctx.font = "bold 24px Arial";
-    ctx.fillStyle = "#fff";
-    ctx.fillText("Hello, "+pmCurrentUser+"!",20,34);
-    ctx.fillText("Score: "+dots.filter(d=>d.eaten).length,280,34);
-    // Move
-    pacX += pacDir * 2.8;
-    if (pacX > 448-32) pacDir = -1;
-    if (pacX < 32) pacDir = 1;
-    t++;
-    animId = requestAnimationFrame(loop);
+  } else {
+    // Ghost
+    ctx.beginPath();
+    ctx.arc(0,0,14,Math.PI,0);
+    ctx.lineTo(14,14);
+    for(let j=0;j<4;++j)
+      ctx.lineTo(14-28*(j%2)/3,14+4*(j%2));
+    ctx.lineTo(-14,14);
+    ctx.closePath();
+    ctx.fillStyle=color; ctx.shadowColor=color; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(-5,-3,3,0,2*Math.PI); ctx.arc(5,-3,3,0,2*Math.PI); ctx.fillStyle="#fff"; ctx.fill();
+    ctx.beginPath(); ctx.arc(-5,-2,1.2,0,2*Math.PI); ctx.arc(5,-2,1.2,0,2*Math.PI); ctx.fillStyle="#191970"; ctx.fill();
   }
-  loop();
+  ctx.restore();
+}
+function checkEatDots(p) {
+  for(let d of dots) {
+    if (!d.eaten && d.x==p.x && d.y==p.y) {
+      d.eaten = true;
+      p.score++;
+    }
+  }
+}
+function checkTag() {
+  if (p1.x==p2.x && p1.y==p2.y) {
+    winner="Ghost (P2) wins!"; p1.alive=false; gameRunning=false;
+  }
+  if (dots.every(d=>d.eaten)) {
+    winner="Pac-Man (P1) wins!"; p2.alive=false; gameRunning=false;
+  }
+}
+function drawStatusBar() {
+  document.getElementById('pm-statusbar').innerHTML =
+    `<b>P1 (Pac-Man)</b>: WASD, Score: ${p1.score} &nbsp; &nbsp; <b>P2 (Chaser)</b>: Arrow keys, Score: ${p2.score}` +
+    (winner?`<br><span style="color:#ffe900;font-weight:bold;font-size:1.2em">${winner}</span><br><span>Press Space to restart</span>`:"");
+}
+let keys={};
+document.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if (!gameRunning && e.key==" ") { resetGame(); }
+});
+document.addEventListener('keyup',e=>{ keys[e.key]=false; });
+function gameLoop() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawMaze();
+  drawDots();
+  drawPlayer(p1,"#ffe900",true);
+  drawPlayer(p2,"#ff4444",false);
+  drawStatusBar();
+  if (gameRunning) {
+    movePlayer(p1,keys,true);
+    movePlayer(p2,keys,false);
+    checkEatDots(p1);
+    checkTag();
+  }
+  animId = requestAnimationFrame(gameLoop);
+}
+function startGame() {
+  resetGame();
+  gameLoop();
 }
 function stopGame() {
   if (animId) cancelAnimationFrame(animId);
-  let ctx = document.getElementById('gameCanvas').getContext('2d');
-  ctx.clearRect(0,0,448,576);
-  ctx.font = "bold 32px Arial";
-  ctx.fillStyle = "#ffe900";
-  ctx.fillText("GAME PAUSED", 120, 300);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('pm-statusbar').innerHTML = '<span style="color:#ffe900;font-weight:bold;">GAME PAUSED</span>';
 }
 </script>
 </body>
