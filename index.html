@@ -1,3 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pac-Man Login Integrated Game</title>
+  <meta name="viewport" content="width=520, initial-scale=1">
+  <style>
+    html,body { margin:0;padding:0;background:#232348;}
+    body { font-family: 'Segoe UI', Arial, sans-serif; }
+    #pm-homepage, #pm-auth-overlay { transition: opacity .3s; }
+    #pm-userbar {
+      position:absolute;top:10px;left:10px;z-index:10;display:none;
+      font-family:sans-serif;font-size:1.08em;background:rgba(255,255,255,0.93);
+      padding:7px 18px 7px 12px;border-radius:18px;box-shadow:0 1px 8px #ccc;}
+    #pm-userbar button { margin-left:12px;background:#ffeaea;border:1px solid #fdc7c7;border-radius:6px;color:#b22222;cursor:pointer;}
+    #pm-auth-overlay input, #pm-auth-overlay button { font-size:1em; }
+    #pm-auth-overlay button { cursor:pointer; }
+    #gameCanvas {
+      display:block;margin:60px auto 0 auto;background:#000;box-shadow:0 5px 36px #0007;border-radius:12px;
+    }
+  </style>
+</head>
+<body>
+<!-- HOMEPAGE -->
+<div id="pm-homepage" style="display:flex;position:fixed;z-index:11;left:0;top:0;width:100vw;height:100vh;align-items:center;justify-content:center;background:#16162b;">
+  <div style="background:rgba(10,10,40,0.95);border-radius:22px;padding:38px 36px;min-width:320px;max-width:420px;text-align:center;box-shadow:0 5px 40px #0cf5;">
+    <canvas id="pm-home-anim" width="320" height="120" style="display:block;margin:auto;margin-bottom:12px;"></canvas>
+    <h1 style="color:#ffe900;font-family:Arial Black,Arial,sans-serif;font-size:2.1em;letter-spacing:2px;margin:0 0 14px 0;text-shadow:0 3px 12px #ffd700,0 1px 0 #000;">PAC-MAN</h1>
+    <div style="color:#fff6;font-size:1.13em;margin-bottom:18px;">
+      <p>The classic arcade game—now with accounts!</p>
+      <ul style="text-align:left;color:#fff8">
+        <li>Sign in, save your scores</li>
+        <li>Animated homepage & modern UI</li>
+        <li>Logout & quick user switching</li>
+      </ul>
+    </div>
+    <button onclick="pmGoToLogin()" style="background:#ffe900;color:#16162b;font-weight:bold;font-size:1.1em;border:none;border-radius:10px;padding:12px 36px;box-shadow:0 2px 16px #ffd700aa;cursor:pointer;transition:background .2s;">Sign In / Register</button>
+    <div style="margin-top:20px;color:#ffb9b9;font-size:.97em;">By Gwaple</div>
+  </div>
+</div>
+
+<!-- LOGIN/REGISTER OVERLAY -->
+<div id="pm-auth-overlay" style="display:none;position:fixed;z-index:12;left:0;top:0;width:100vw;height:100vh;align-items:center;justify-content:center;background:rgba(0,0,0,0.77);">
+  <div id="pm-login-box" style="background:#242449;border-radius:15px;box-shadow:0 2px 24px #0909af99;padding:30px 28px 22px 28px;min-width:240px;max-width:330px;">
+    <h2 style="margin-top:0;text-align:center;color:#ffe900;">Sign In</h2>
+    <input id="pm-login-user" placeholder="Username" style="width:90%;margin-bottom:8px;"><br>
+    <input id="pm-login-pass" type="password" placeholder="Password" style="width:90%;margin-bottom:12px;"><br>
+    <button onclick="pmLogin()" style="width:90%;background:#ffe900;color:#16162b;font-weight:600;border-radius:7px;">Sign In</button>
+    <button onclick="pmShowRegister()" style="width:90%;margin-top:6px;background:#222255;color:#ffe900;border-radius:7px;">Register</button>
+    <button onclick="pmGoHome()" style="width:90%;margin-top:6px;background:#222;color:#fff;border-radius:7px;">Home</button>
+    <div id="pm-login-msg" style="min-height:18px;margin-top:10px;color:#ff6060;"></div>
+  </div>
+  <div id="pm-register-box" style="display:none;background:#242449;border-radius:15px;box-shadow:0 2px 24px #0909af99;padding:30px 28px 22px 28px;min-width:240px;max-width:330px;">
+    <h2 style="margin-top:0;text-align:center;color:#ffe900;">Register</h2>
+    <input id="pm-reg-user" placeholder="Username" style="width:90%;margin-bottom:8px;"><br>
+    <input id="pm-reg-pass" type="password" placeholder="Password" style="width:90%;margin-bottom:12px;"><br>
+    <button onclick="pmRegister()" style="width:90%;background:#ffe900;color:#16162b;font-weight:600;border-radius:7px;">Register</button>
+    <button onclick="pmShowLogin()" style="width:90%;margin-top:6px;background:#222255;color:#ffe900;border-radius:7px;">Back to Sign In</button>
+    <button onclick="pmGoHome()" style="width:90%;margin-top:6px;background:#222;color:#fff;border-radius:7px;">Home</button>
+    <div id="pm-register-msg" style="min-height:18px;margin-top:10px;color:#8dff6e;"></div>
+  </div>
+</div>
+
+<!-- USERBAR -->
+<div id="pm-userbar">
+  <span id="pm-userbar-welcome"></span>
+  <button onclick="pmLogout()">Logout</button>
+</div>
+
+<!-- Your Pac-Man game canvas here! -->
+<canvas id="gameCanvas" width="448" height="576"></canvas>
+
+<script>
 // --- HOMEPAGE ANIMATION ---
 function pmAnimHomepage() {
   const canvas = document.getElementById('pm-home-anim');
@@ -6,7 +79,7 @@ function pmAnimHomepage() {
   let t = 0;
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    // Draw dots
+    // Dots
     for(let x=32;x<=288;x+=32) {
       ctx.beginPath();
       ctx.arc(x,60,5,0,2*Math.PI);
@@ -63,7 +136,6 @@ function pmAnimHomepage() {
   }
   draw();
 }
-
 
 // --- LOGIN/REGISTER LOGIC ---
 let pmCurrentUser = "";
@@ -136,7 +208,6 @@ window.pmLogout = pmLogout;
 window.pmGoHome = pmGoHome;
 window.pmGoToLogin = pmGoToLogin;
 
-
 // --- INIT HOMEPAGE ---
 window.addEventListener('DOMContentLoaded',function(){
   pmAnimHomepage();
@@ -146,13 +217,78 @@ window.addEventListener('DOMContentLoaded',function(){
 // --- INTEGRATION HOOKS ---
 // Call this in your Pac-Man game to start on login:
 window.pmOnLogin = function() {
-  // E.g. startGame();
-  // You can use pmCurrentUser to save scores
-  // Example:
+  // Call your Pac-Man game start logic here!
   if (typeof startGame === "function") startGame();
 };
 // Call this to pause/stop game on logout/home:
 window.pmOnLogout = function() {
-  // E.g. stopGame();
+  // Optionally pause/stop your Pac-Man game here
   if (typeof stopGame === "function") stopGame();
 };
+
+/* 
+-------------------------------------------
+SIMPLE DEMO PAC-MAN GAME LOOP BELOW
+Replace with your actual game logic!
+-------------------------------------------
+*/
+let animId, dots = [];
+function startGame() {
+  let ctx = document.getElementById('gameCanvas').getContext('2d');
+  // Simple animated Pac-Man demo (replace with real game!)
+  let t = 0, pacX = 48, pacDir = 1;
+  dots = [];
+  for(let i=0;i<28;i++) dots.push({x:16+i*16,y:288,eaten:false});
+  function loop(){
+    ctx.clearRect(0,0,448,576);
+    // Dots
+    for(let d of dots) {
+      if (!d.eaten) {
+        ctx.beginPath();
+        ctx.arc(d.x,d.y,4,0,2*Math.PI);
+        ctx.fillStyle="#fff";
+        ctx.fill();
+      }
+    }
+    // Animate Pac-Man
+    let mouth = Math.abs(Math.sin(t/5))*Math.PI/4+0.18;
+    ctx.save();
+    ctx.translate(pacX,288);
+    ctx.beginPath();
+    ctx.arc(0,0,17,mouth,2*Math.PI-mouth,false);
+    ctx.lineTo(0,0);
+    ctx.closePath();
+    ctx.fillStyle="#ffe900"; ctx.strokeStyle="#d8c800"; ctx.lineWidth=2;
+    ctx.shadowColor="#ffe900"; ctx.shadowBlur=8;
+    ctx.fill(); ctx.shadowBlur=0; ctx.stroke();
+    ctx.beginPath(); ctx.arc(7,-7,3,0,2*Math.PI); ctx.fillStyle="#191970"; ctx.fill();
+    ctx.restore();
+    // "Eat" dots
+    for(let d of dots) {
+      if (!d.eaten && Math.abs(d.x-pacX)<13) d.eaten=true;
+    }
+    // Score
+    ctx.font = "bold 24px Arial";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Hello, "+pmCurrentUser+"!",20,34);
+    ctx.fillText("Score: "+dots.filter(d=>d.eaten).length,280,34);
+    // Move
+    pacX += pacDir * 2.8;
+    if (pacX > 448-32) pacDir = -1;
+    if (pacX < 32) pacDir = 1;
+    t++;
+    animId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+function stopGame() {
+  if (animId) cancelAnimationFrame(animId);
+  let ctx = document.getElementById('gameCanvas').getContext('2d');
+  ctx.clearRect(0,0,448,576);
+  ctx.font = "bold 32px Arial";
+  ctx.fillStyle = "#ffe900";
+  ctx.fillText("GAME PAUSED", 120, 300);
+}
+</script>
+</body>
+</html>
